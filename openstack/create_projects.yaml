@@ -1,0 +1,106 @@
+---
+- hosts: ansible_machine
+  become: false
+  vars:
+    - ansible_python_interpreter: /home/ariveral/venvs/openstack_workspace/bin/python
+    - osp_cloud: overcloud 
+    - osp_projects:
+      - name: "gargamel_labs"
+        quotas:
+          total_instances: 10
+          total_cores: 40
+          total_ram_mb: 75000
+          total_disk_gb: 500
+          total_volumes: 40
+        domain_id: "default"   
+
+      - name: "smurf_labs"
+        quotas:
+          total_instances: 40
+          total_cores: 40
+          total_ram_mb: 128000
+          total_disk_gb: 500
+          total_volumes: 40
+        domain_id: "default"   
+
+
+    - osp_users:
+      - name: "gargamel.roberts"
+        email: "gargamel@gargamel.labs"
+        description: "Gargamel Roberts"
+        password: "password"
+        default_project: "gargamel_labs"
+        default_project_role: "admin"
+        domain_id: "default"   
+
+      - name: "poppa.smurf"
+        email: "psmurf@gargamel.labs"
+        description: "Poppa Smurf"
+        password: "password"
+        default_project: "smurf_labs"
+        default_project_role: "admin"
+        domain_id: "default"   
+
+      - name: "perry.johnson"
+        email: "pjohnson@consulting.org"
+        description: "Perry Johnson"
+        password: "password"
+        default_project: "smurf_labs"
+        default_project_role: "member"
+        domain_id: "default"
+
+  tasks:
+    - name: "Creating OpenStack projects for this environment."
+      os_project:
+        cloud: "{{ osp_cloud }}"
+        endpoint_type: "{{ osp_interface_type | default('public') }}"
+        domain_id: "{{ item.domain_id }}"
+        name: "{{ item.name }}" 
+        state: present
+        enabled: true
+      loop: "{{ osp_projects }}"
+      tags:
+        - create_project
+
+    - name: "Setting the OpenStack quotas for project."
+      os_quota:
+        cloud: "{{ osp_cloud }}"
+        name: "{{ item.name }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        instances: "{{ item.quotas.total_instances }}"
+        cores: "{{ item.quotas.total_cores }}"
+        ram: "{{ item.quotas.total_ram_mb }}"
+        gigabytes: "{{ item.quotas.total_disk_gb }}"
+        volumes: "{{ item.quotas.total_volumes }}"
+        state: present
+      loop: "{{ osp_projects }}"
+      tags:
+        - create_project
+
+    - name: "Creating OpenStack users for this environment."
+      os_user:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        name: "{{ item.name }}" 
+        password: "{{ item.password }}" 
+        email: "{{ item.email }}"
+        default_project: "{{ item.default_project }}"
+        domain: "{{ item.domain_id }}"
+        state: present
+        enabled: yes
+      loop: "{{ osp_users }}"
+      tags:
+        - create_users
+
+    - name: "Associating OpenStack users to roles in their default projects."
+      os_user_role:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        user: "{{ item.name }}" 
+        role: "{{ item.default_project_role }}"
+        project: "{{ item.default_project }}"
+        domain: "{{ item.domain_id }}"
+        state: present
+      loop: "{{ osp_users }}"
+      tags:
+        - create_users

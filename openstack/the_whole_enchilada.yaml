@@ -2,24 +2,84 @@
 - hosts: ansible_machine
   become: false
   vars:
-    - ansible_python_interpreter: /home/ariveral/venvs/openstack_workspace/bin/python 
-    - osp_cloud: overcloud
-  vars_files:
-    - vars/vars_openstack_resources_smurf_labs.yaml
+    - ansible_python_interpreter: /home/ariveral/venvs/openstack_workspace/bin/python
+    - osp_cloud: overcloud 
 
+    # OpenStack Project Creation Variables
+    - osp_projects:
+      - name: "gargamel_labs"
+        quotas:
+          total_instances: 10
+          total_cores: 40
+          total_ram_mb: 75000
+          total_disk_gb: 500
+          total_volumes: 40
+        domain_id: "default"   
+
+      # OpenStack User Creation Variables
+    - osp_users:
+      - name: "gargamel.roberts"
+        email: "gargamel@gargamel.labs"
+        description: "Gargamel Roberts"
+        password: "password"
+        default_project: "gargamel_labs"
+        default_project_role: "admin"
+        domain_id: "default"   
+
+      - name: "perry.johnson"
+        email: "pjohnson@consulting.org"
+        description: "Perry Johnson"
+        password: "password"
+        default_project: "gargamel_labs"
+        default_project_role: "member"
+        domain_id: "default"
+
+    # OpenStack Network Creation Variables
+    - create_provider_networks: true
+    - create_tenant_networks: true
+    - create_neutron_routers: true
+    - osp_provider_networks:
+      - net_name: "gargamel_labs_ext_net"
+        network_project_owner: "admin"
+        net_external: true
+        net_is_shared: true
+        physical_network: "datacentre"
+        provider_network_type: "vlan"
+        net_segment_id: 71
+        subnets:
+          subnet_name: "gargamel_labs_ext_subnet"
+          subnet_enable_dhcp: true
+          subnet_cidr: "172.25.71.0/24"
+          subnet_gateway: "172.25.71.1"
+          subnet_dhcp_start: "172.25.71.2"
+          subnet_dhcp_end: "172.25.71.254"
+          dns_1: "172.25.48.3"
+          dns_2: "8.8.8.8"
+    
+    - osp_tenant_networks:
+      - net_name: "gargamel_labs_int_net"
+        network_project_owner: "gargamel_labs"
+        net_external: false
+        net_is_shared: false
+        provider_network_type: "geneve"
+        subnets:
+          subnet_name: "gargamel_labs_int_subnet"
+          subnet_enable_dhcp: true
+          subnet_cidr: "10.10.0.0/24"
+          subnet_gateway: "10.10.0.1"
+          subnet_dhcp_start: "10.10.0.2"
+          subnet_dhcp_end: "10.10.0.254"
+          dns_1: "172.25.48.3"
+          dns_2: "8.8.8.8"
+    
+    - osp_neutron_routers:
+      - router_name: "gargamel_labs_ext_router"
+        router_project_owner: "gargamel_labs"
+        router_gateway_network: "gargamel_labs_ext_net"
+        router_private_subnet_interface: "gargamel_labs_int_subnet"
+
+  
   tasks:
-    - name: "Creating the default OpenStack flavors for this environment."
-      os_nova_flavor:
-        cloud: "{{ osp_cloud }}"
-        interface: "{{ osp_interface_type | default('public') }}"
-        name: "{{ item.name }}"
-        vcpus: "{{ item.vcpus }}"
-        ram: "{{ item.ram_mb }}"
-        disk: "{{ item.disk_gb }}"
-      loop: "{{ osp_flavors }}"
-      tags:
-        - create_flavors
-
     - name: "Creating OpenStack projects for this environment."
       os_project:
         cloud: "{{ osp_cloud }}"

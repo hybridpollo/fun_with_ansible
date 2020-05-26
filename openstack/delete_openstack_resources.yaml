@@ -1,6 +1,12 @@
 ---
 - hosts: ansible_machine
+  become: false
+  vars:
+    - ansible_python_interpreter: /home/ariveral/venvs/openstack_workspace/bin/python 
+    - osp_cloud: overcloud
+
   vars_files:
+    - vars/vars_openstack_resources_smurf_labs.yaml
 
   tasks:
     - name: "Deleting neutron routers."

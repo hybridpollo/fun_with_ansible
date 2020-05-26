@@ -1,0 +1,40 @@
+---
+- hosts: ansible_machine
+  become: false
+  vars:
+    - ansible_python_interpreter: /home/ariveral/venvs/openstack_workspace/bin/python
+    - osp_cloud: overcloud 
+    - osp_flavors:
+      - name: g.tiny
+        vcpus: 1 
+        ram_mb: 4096
+        disk_gb: 25
+      - name: g.small
+        vcpus: 2 
+        ram_mb: 8192
+        disk_gb: 50
+      - name: g.medium
+        vcpus: 4 
+        ram_mb: 16384
+        disk_gb: 100
+      - name: g.large
+        vcpus: 8 
+        ram_mb: 32768
+        disk_gb: 200
+      - name: g.xlarge
+        vcpus:  16
+        ram_mb: 65536
+        disk_gb: 250
+
+  tasks:
+    - name: "Creating the default OpenStack flavors for this environment."
+      os_nova_flavor:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        name: "{{ item.name }}"
+        vcpus: "{{ item.vcpus }}"
+        ram: "{{ item.ram_mb }}"
+        disk: "{{ item.disk_gb }}"
+      loop: "{{ osp_flavors }}"
+      tags:
+        - create_flavors
