@@ -1,0 +1,159 @@
+---
+- hosts: ansible_machine
+  vars_files:
+
+  tasks:
+    - name: "Creating the default OpenStack flavors for this environment."
+      os_nova_flavor:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        name: "{{ item.name }}"
+        vcpus: "{{ item.vcpus }}"
+        ram: "{{ item.ram_mb }}"
+        disk: "{{ item.disk_gb }}"
+      loop: "{{ osp_flavors }}"
+      tags:
+        - create_flavors
+
+    - name: "Creating OpenStack projects for this environment."
+      os_project:
+        cloud: "{{ osp_cloud }}"
+        endpoint_type: "{{ osp_interface_type | default('public') }}"
+        domain_id: "{{ item.domain_id }}"
+        name: "{{ item.name }}" 
+        state: present
+        enabled: true
+      loop: "{{ osp_projects }}"
+      tags:
+        - create_project
+
+    - name: "Setting the OpenStack quotas for project."
+      os_quota:
+        cloud: "{{ osp_cloud }}"
+        name: "{{ item.name }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        instances: "{{ item.quotas.total_instances }}"
+        cores: "{{ item.quotas.total_cores }}"
+        ram: "{{ item.quotas.total_ram_mb }}"
+        gigabytes: "{{ item.quotas.total_disk_gb }}"
+        volumes: "{{ item.quotas.total_volumes }}"
+        state: present
+      loop: "{{ osp_projects }}"
+      tags:
+        - create_project
+
+    - name: "Creating OpenStack users for this environment."
+      os_user:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        name: "{{ item.name }}" 
+        password: "{{ item.password }}" 
+        email: "{{ item.email }}"
+        default_project: "{{ item.default_project }}"
+        domain: "{{ item.domain_id }}"
+        state: present
+        enabled: yes
+      loop: "{{ osp_users }}"
+      tags:
+        - create_users
+
+    - name: "Associating OpenStack users to roles in their default projects."
+      os_user_role:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        user: "{{ item.name }}" 
+        role: "{{ item.default_project_role }}"
+        project: "{{ item.default_project }}"
+        domain: "{{ item.domain_id }}"
+        state: present
+      loop: "{{ osp_users }}"
+      tags:
+        - create_users
+
+    - name: "Creating neutron provider networks resources."
+      os_network:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        project: "{{ item.network_project_owner | default('admin') }}"
+        name: "{{ item.net_name }}" 
+        external: "{{ item.net_external | default('false') }}"
+        shared: "{{ item.net_is_shared | default('false') }}"
+        provider_network_type: "{{ item.provider_network_type }}"
+        provider_physical_network: "{{ item.physical_network }}"
+        provider_segmentation_id: "{{ item.net_segment_id }}"
+        state: present
+      loop: "{{ osp_provider_networks }}"
+      when: create_provider_networks == True
+      tags:
+        - create_provider_networks
+
+    - name: "Creating neutron provider subnets resources."
+      os_subnet:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        network_name: "{{ item.net_name }}"
+        project: "{{ item.network_project_owner | default('admin') }}"
+        name: "{{ item.subnets.subnet_name }}"
+        cidr: "{{ item.subnets.subnet_cidr }}"
+        gateway_ip: "{{ item.subnets.subnet_gateway }}"
+        allocation_pool_start: "{{ item.subnets.subnet_dhcp_start }}"
+        allocation_pool_end: "{{ item.subnets.subnet_dhcp_end }}"
+        enable_dhcp: "{{ item.subnets.subnet_enable_dhcp }}"
+        dns_nameservers:
+          - "{{ item.subnets.dns_1 }}"
+          - "{{ item.subnets.dns_2 }}"
+        state: present
+      loop: "{{ osp_provider_networks }}"
+      when: create_provider_networks == True 
+      tags:
+        - create_provider_networks
+
+    - name: "Creating neutron tenant network resources."
+      os_network:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        project: "{{ item.network_project_owner | default('admin') }}"
+        name: "{{ item.net_name }}" 
+        external: "{{ item.net_external | default('false') }}"
+        shared: "{{ item.net_is_shared | default('false') }}"
+        provider_network_type: "{{ item.provider_network_type }}"
+        state: present
+      loop: "{{ osp_tenant_networks }}"
+      when: create_tenant_networks == True
+      tags:
+        - create_tenant_networks
+
+    - name: "Creating neutron tenant subnets resources."
+      os_subnet:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        network_name: "{{ item.net_name }}"
+        project: "{{ item.network_project_owner | default('admin') }}"
+        name: "{{ item.subnets.subnet_name }}"
+        cidr: "{{ item.subnets.subnet_cidr }}"
+        gateway_ip: "{{ item.subnets.subnet_gateway }}"
+        allocation_pool_start: "{{ item.subnets.subnet_dhcp_start }}"
+        allocation_pool_end: "{{ item.subnets.subnet_dhcp_end }}"
+        enable_dhcp: "{{ item.subnets.subnet_enable_dhcp }}"
+        dns_nameservers:
+          - "{{ item.subnets.dns_1 }}"
+          - "{{ item.subnets.dns_2 }}"
+        state: present
+      loop: "{{ osp_tenant_networks }}"
+      when: create_tenant_networks == True
+      tags:
+        - create_tenant_networks
+
+    - name: "Creating neutron routers."
+      os_router:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        project: "{{ item.router_project_owner | default('admin') }}"
+        name: "{{ item.router_name }}" 
+        network: "{{ item.router_gateway_network }}"
+        interfaces: "{{ item.router_private_subnet_interface }}"
+        state: present
+      loop: "{{ osp_neutron_routers }}"
+      when: create_neutron_routers == True
+      tags:
+        - create_routers

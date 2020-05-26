@@ -1,0 +1,89 @@
+---
+osp_cloud: "overcloud"
+
+osp_projects:
+  - name: "gargamel_labs"
+    quotas:
+      total_instances: 10
+      total_cores: 40
+      total_ram_mb: 75000
+      total_disk_gb: 500
+      total_volumes: 40
+    domain_id: "default"
+
+  - name: "smurf_labs"
+    quotas:
+      total_instances: 40
+      total_cores: 40
+      total_ram_mb: 128000
+      total_disk_gb: 500
+      total_volumes: 40
+    domain_id: "default"
+
+osp_users:
+  - name: "gargamel.roberts"
+    email: "gargamel@gargamel.labs"
+    description: "Gargamel Roberts"
+    password: "password"
+    default_project: "gargamel_labs"
+    default_project_role: "admin"
+    domain_id: "default"
+
+  - name: "poppa.smurf"
+    email: "psmurf@gargamel.labs"
+    description: "Poppa Smurf"
+    password: "password"
+    default_project: "smurf_labs"
+    default_project_role: "admin"
+    domain_id: "default"
+
+  - name: "perry.johnson"
+    email: "pjohnson@consulting.org"
+    description: "Perry Johnson"
+    password: "password"
+    default_project: "smurf_labs"
+    default_project_role: "member"
+    domain_id: "default"
+
+create_provider_networks: true
+osp_provider_networks:
+  - net_name: "smurf_labs_ext_net"
+    network_project_owner: "admin"
+    net_external: true
+    net_is_shared: true
+    physical_network: "datacentre"
+    provider_network_type: "vlan"
+    net_segment_id: 71
+    subnets:
+      subnet_name: "smurf_labs_ext_subnet"
+      subnet_enable_dhcp: true
+      subnet_cidr: "172.25.71.0/24"
+      subnet_gateway: "172.25.71.1"
+      subnet_dhcp_start: "172.25.71.2"
+      subnet_dhcp_end: "172.25.71.254"
+      dns_1: "172.25.48.3"
+      dns_2: "8.8.8.8"
+
+create_tenant_networks: true
+osp_tenant_networks:
+  - net_name: "smurf_labs_int_net"
+    network_project_owner: "smurf_labs"
+    net_external: false
+    net_is_shared: false
+    provider_network_type: "geneve"
+    subnets:
+      subnet_name: "smurf_labs_int_subnet"
+      subnet_enable_dhcp: true
+      subnet_cidr: "10.10.0.0/24"
+      subnet_gateway: "10.10.0.1"
+      subnet_dhcp_start: "10.10.0.2"
+      subnet_dhcp_end: "10.10.0.254"
+      dns_1: "172.25.48.3"
+      dns_2: "8.8.8.8"
+
+create_neutron_routers: true
+osp_neutron_routers:
+  - router_name: "smurf_labs_ext_router"
+    router_project_owner: "smurf_labs"
+    router_gateway_network: "smurf_labs_ext_net"
+    router_private_subnet_interface: "smurf_labs_int_subnet"

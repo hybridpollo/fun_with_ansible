@@ -1,0 +1,65 @@
+---
+osp_cloud: "overcloud"
+
+osp_projects:
+  - name: "arl_labs"
+    quotas:
+      total_instances: 100
+      total_cores: 250
+      total_ram_mb: 244000
+      total_disk_gb: 2000
+      total_volumes: 100
+    domain_id: "default"
+
+osp_users:
+  - name: "arlaporte"
+    email: "arlaporte@gmail.com"
+    description: "Alberto Rivera Laporte"
+    password: "password"
+    default_project: "arl_labs"
+    default_project_role: "member"
+    domain_id: "default"
+
+create_provider_networks: true
+osp_provider_networks:
+  - net_name: "arl_labs_ext_net"
+    network_project_owner: "admin"
+    net_external: true
+    net_is_shared: true
+    physical_network: "datacentre"
+    provider_network_type: "vlan"
+    net_segment_id: 70
+    subnets:
+      subnet_name: "arl_labs_ext_subnet"
+      subnet_enable_dhcp: true
+      subnet_cidr: "172.25.70.0/24"
+      subnet_gateway: "172.25.70.1"
+      subnet_dhcp_start: "172.25.70.2"
+      subnet_dhcp_end: "172.25.70.254"
+      dns_1: "172.25.48.3"
+      dns_2: "8.8.8.8"
+
+create_tenant_networks: true
+osp_tenant_networks:
+  - net_name: "arl_labs_int_net"
+    network_project_owner: "arl_labs"
+    net_external: false
+    net_is_shared: false
+    provider_network_type: "geneve"
+    net_segment_id: 1000
+    subnets:
+      subnet_name: "arl_labs_int_subnet"
+      subnet_enable_dhcp: true
+      subnet_cidr: "10.10.0.0/24"
+      subnet_gateway: "10.10.0.1"
+      subnet_dhcp_start: "10.10.0.2"
+      subnet_dhcp_end: "10.10.0.254"
+      dns_1: "172.25.48.3"
+      dns_2: "8.8.8.8"
+
+create_neutron_routers: true
+osp_neutron_routers:
+  - router_name: "arl_labs_ext_router"
+    router_project_owner: "arl_labs"
+    router_gateway_network: "arl_labs_ext_net"
+    router_private_subnet_interface: "arl_labs_int_subnet"

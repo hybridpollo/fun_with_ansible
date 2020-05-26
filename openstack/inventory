@@ -1,0 +1,5 @@
+---
+ansible_machine:
+  hosts:
+    localhost:
+      ansible_connection: local

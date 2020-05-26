@@ -1,0 +1,75 @@
+---
+- hosts: ansible_machine
+  vars_files:
+
+  tasks:
+    - name: "Deleting neutron routers."
+      os_router:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        name: "{{ item.router_name }}" 
+        state: absent
+      loop: "{{ osp_neutron_routers }}"
+      tags:
+        - delete_routers
+
+    - name: "Deleting neutron provider networks resources."
+      os_network:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        name: "{{ item.net_name }}" 
+        state: absent
+      loop: "{{ osp_provider_networks }}"
+      tags:
+        - delete_provider_networks
+
+    - name: "Deleting neutron provider subnets resources."
+      os_subnet:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        name: "{{ item.subnets.subnet_name }}"
+        state: absent
+      loop: "{{ osp_provider_networks }}"
+      tags:
+        - delete_provider_networks
+
+    - name: "Deleting neutron tenant network resources."
+      os_network:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        name: "{{ item.net_name }}" 
+        state: absent
+      loop: "{{ osp_tenant_networks }}"
+      tags:
+        - delete_tenant_networks
+
+    - name: "Deleting neutron tenant subnets resources."
+      os_subnet:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        name: "{{ item.subnets.subnet_name }}"
+        state: absent
+      loop: "{{ osp_tenant_networks }}"
+      tags:
+        - delete_tenant_networks
+
+    - name: "Deleting OpenStack projects for this environment."
+      os_project:
+        cloud: "{{ osp_cloud }}"
+        endpoint_type: "{{ osp_interface_type | default('public') }}"
+        name: "{{ item.name }}" 
+        state: absent
+      loop: "{{ osp_projects }}"
+      tags:
+        - delete_project
+
+    - name: "Deleting OpenStack users for this environment."
+      os_user:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        name: "{{ item.name }}" 
+        state: absent
+      loop: "{{ osp_users }}"
+      tags:
+        - delete_users
+
