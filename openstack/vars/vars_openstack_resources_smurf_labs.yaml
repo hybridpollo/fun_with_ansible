@@ -1,5 +1,6 @@
 ---
 osp_cloud: "overcloud"
+create_osp_flavors: false
 
 osp_projects:
   - name: "gargamel_labs"
@@ -48,7 +49,7 @@ osp_users:
 create_provider_networks: true
 osp_provider_networks:
   - net_name: "smurf_labs_ext_net"
-    network_project_owner: "admin"
+    network_project_owner: "smurf_labs"
     net_external: true
     net_is_shared: true
     physical_network: "datacentre"

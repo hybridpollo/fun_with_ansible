@@ -1,5 +1,6 @@
 ---
 osp_cloud: "overcloud"
+create_osp_flavors: true
 
 osp_flavors:
   - name: g.tiny

@@ -17,6 +17,7 @@
         ram: "{{ item.ram_mb }}"
         disk: "{{ item.disk_gb }}"
       loop: "{{ osp_flavors }}"
+      when: create_osp_flavors == True
       tags:
         - create_flavors
 
@@ -59,6 +60,7 @@
         state: present
         enabled: yes
       loop: "{{ osp_users }}"
+      no_log: true
       tags:
         - create_users
 
@@ -72,6 +74,7 @@
         domain: "{{ item.domain_id }}"
         state: present
       loop: "{{ osp_users }}"
+      no_log: true
       tags:
         - create_users
 

@@ -76,6 +76,7 @@
         name: "{{ item.name }}" 
         state: absent
       loop: "{{ osp_users }}"
+      no_log: true
       tags:
         - delete_users
 
