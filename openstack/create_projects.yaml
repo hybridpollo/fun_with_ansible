@@ -46,7 +46,7 @@
         description: "Perry Johnson"
         password: "password"
         default_project: "smurf_labs"
-        default_project_role: "member"
+        default_project_role: "_member_"
         domain_id: "default"
 
   tasks:
