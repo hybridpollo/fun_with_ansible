@@ -17,7 +17,6 @@ osp_projects:
       total_disk_gb: 500
       total_volumes: 40
     domain_id: "default"
-
   - name: "smurf_labs"
     quotas:
       total_instances: 40
@@ -35,7 +34,6 @@ osp_users:
     default_project: "gargamel_labs"
     default_project_role: "admin"
     domain_id: "default"
-
   - name: "poppa.smurf"
     email: "psmurf@gargamel.labs"
     description: "Poppa Smurf"
@@ -43,7 +41,6 @@ osp_users:
     default_project: "smurf_labs"
     default_project_role: "admin"
     domain_id: "default"
-
   - name: "perry.johnson"
     email: "pjohnson@consulting.org"
     description: "Perry Johnson"

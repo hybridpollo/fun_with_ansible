@@ -1,28 +1,30 @@
 ---
+##############################
+# General Variables
+#############################
 osp_cloud: "overcloud"
-create_osp_flavors: true
 
+##############################
+# Flavors Variables
+#############################
+create_osp_flavors: true
 osp_flavors:
   - name: g.tiny
     vcpus: 1 
     ram_mb: 4096
     disk_gb: 25
-
   - name: g.small
     vcpus: 2 
     ram_mb: 8192
     disk_gb: 50
-
   - name: g.medium
     vcpus: 4 
     ram_mb: 16384
     disk_gb: 100
-
   - name: g.large
     vcpus: 8 
     ram_mb: 32768
     disk_gb: 200
-
   - name: g.xlarge
     vcpus:  16
     ram_mb: 65536

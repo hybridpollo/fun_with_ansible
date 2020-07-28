@@ -30,7 +30,6 @@
         default_project: "gargamel_labs"
         default_project_role: "admin"
         domain_id: "default"   
-
       - name: "perry.johnson"
         email: "pjohnson@consulting.org"
         description: "Perry Johnson"
