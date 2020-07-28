@@ -1,7 +1,13 @@
 ---
+##############################
+# General Variables
+#############################
 osp_cloud: "overcloud"
 create_osp_flavors: false
 
+##############################
+# Networks, Subnets and Routers
+#############################
 osp_projects:
   - name: "gargamel_labs"
     quotas:
@@ -46,6 +52,9 @@ osp_users:
     default_project_role: "member"
     domain_id: "default"
 
+##############################
+# Networks, Subnets and Routers
+#############################
 create_provider_networks: true
 osp_provider_networks:
   - net_name: "smurf_labs_ext_net"
@@ -88,3 +97,23 @@ osp_neutron_routers:
     router_project_owner: "smurf_labs"
     router_gateway_network: "smurf_labs_ext_net"
     router_private_subnet_interface: "smurf_labs_int_subnet"
+
+
+##############################
+# Security Groups and Rules
+##############################
+create_project_security_groups: true
+osp_sec_groups:
+  - secgroup_name: allow_ssh_icmp
+    secgroup_owner_project: smurf_labs
+    sec_group_rules:
+      - direction: ingress
+        source_network: 0.0.0.0/0
+        port_range_min: 22
+        port_range_max: 22
+        protocol: tcp
+      - direction: ingress 
+        source_network: 0.0.0.0/0
+        port_range_min: -1
+        port_range_max: -1
+        protocol: icmp

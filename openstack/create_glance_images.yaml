@@ -1,0 +1,70 @@
+---
+- hosts: ansible_machine
+  become: false
+  vars:
+    - ansible_python_interpreter: /home/arlaporte/virtual_environments/ansible_osp_ws/bin/python3
+    - osp_cloud: overcloud
+    - upload_glance_images: true
+    - source_image_base_url: http://satellite.voltron.xyz/pub/ISOS
+    - source_image_download_dir: /home/arlaporte/tmp
+    - osp_glance_images:
+      - glance_image_name: centos-7
+        container_format: bare
+        disk_format: qcow2
+        source_image_name: CentOS-7-x86_64-GenericCloud.qcow2
+        image_is_public: true
+        image_properties: 
+          - hw_scsi_model: virtio-scsi
+            hw_disk_bus: scsi
+      - glance_image_name: centos-8
+        container_format: bare
+        disk_format: qcow2
+        source_image_name: CentOS-8-GenericCloud-8.2.2004-20200611.2.x86_64.qcow2
+        image_is_public: true
+        image_properties: 
+          - hw_scsi_model: virtio-scsi
+            hw_disk_bus: scsi
+      - glance_image_name: rhel-7
+        container_format: bare
+        disk_format: qcow2
+        source_image_name: rhel-server-7.8-x86_64-kvm.qcow2
+        image_is_public: true
+        image_properties: 
+          - hw_scsi_model: virtio-scsi
+            hw_disk_bus: scsi
+      - glance_image_name: rhel-8
+        container_format: bare
+        disk_format: qcow2
+        source_image_name: rhel-8.1-x86_64-kvm.qcow2
+        image_is_public: true
+        image_properties: 
+          - hw_scsi_model: virtio-scsi
+            hw_disk_bus: scsi
+
+  tasks:
+    - name: "Downloading qcow image files to a temporary location for  upload to Glance."
+      get_url:
+        url: "{{ source_image_base_url }}/{{ item.source_image_name }}"
+        dest: "{{ source_image_download_dir }}/{{ item.source_image_name }}"
+      loop:  "{{ osp_glance_images }}"
+      when: upload_glance_images == True
+      tags:
+        -  upload_glance_images
+
+    - name: "Uploading the OpenStack images for this cloud."
+      os_image:
+        cloud: "{{ osp_cloud }}"
+        interface: "{{ osp_interface_type | default('public') }}"
+        name: "{{ item.0.glance_image_name }}"
+        container_format: "{{ item.0.container_format }}"
+        disk_format: "{{ item.0.disk_format }}"
+        filename: "{{ source_image_download_dir }}/{{ item.0.source_image_name }}"  
+        is_public: "{{ item.0.image_is_public | default('false') }}"
+        properties: "{{ item.1 }}"
+        state: present
+      with_subelements: 
+        - "{{ osp_glance_images }}"
+        - image_properties
+      when: upload_glance_images == True
+      tags:
+        -  upload_glance_images

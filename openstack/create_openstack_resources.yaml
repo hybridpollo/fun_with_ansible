@@ -1,8 +1,14 @@
+###########################
+# This example contain both variables
+# defined within the context of the
+# playbook and loaded from a variables file
+###########################
+
 ---
 - hosts: ansible_machine
   become: false
   vars:
-    - ansible_python_interpreter: /home/ariveral/venvs/openstack_workspace/bin/python 
+    - ansible_python_interpreter: /home/arlaporte/virtual_environments/ansible_osp_ws/bin/python3
     - osp_cloud: overcloud
   vars_files:
     - vars/vars_openstack_resources_smurf_labs.yaml
@@ -165,3 +171,31 @@
       when: create_neutron_routers == True
       tags:
         - create_routers
+
+    - name: "Creating project security groups."
+      os_security_group:
+        cloud: "{{ osp_cloud }}"
+        name: "{{ item.secgroup_name }}" 
+        project: "{{ item.secgroup_owner_project }}"
+        state: present
+      loop: "{{ osp_sec_groups }}"
+      when: create_project_security_groups == True 
+      tags:
+        - create_security_group
+
+    - name: "Creating project security group rules."
+      os_security_group_rule:
+        cloud: "{{ osp_cloud }}"
+        security_group: "{{ item.0.secgroup_name }}"
+        project: "{{ item.0.secgroup_owner_project }}"
+        protocol: "{{ item.1.protocol }}"
+        remote_ip_prefix: "{{ item.1.source_network }}"
+        port_range_min: "{{ item.1.port_range_min }}"
+        port_range_max: "{{ item.1.port_range_max }}"
+        state: present
+      with_subelements: 
+        - "{{ osp_sec_groups }}"
+        - sec_group_rules
+      when: create_project_security_groups == True 
+      tags:
+        - create_security_group

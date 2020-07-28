@@ -2,7 +2,7 @@
 - hosts: ansible_machine
   become: false
   vars:
-    - ansible_python_interpreter: /home/ariveral/venvs/openstack_workspace/bin/python
+    - ansible_python_interpreter: /home/arlaporte/virtual_environments/ansible_osp_ws/bin/python3
     - osp_cloud: overcloud 
     - osp_flavors:
       - name: g.tiny
